@@ -4,7 +4,6 @@ import "core:math"
 import "base:intrinsics"
 
 FFT_SIZE :: 1024
-FFT_BITS :: 10
 
 twiddle_table : [FFT_SIZE / 2]complex64
 hann_table    : [FFT_SIZE]f32
@@ -12,9 +11,11 @@ bit_rev_table : [FFT_SIZE]u32
 complex_buf   : [FFT_SIZE]complex64
 
 init_fft :: proc() #no_bounds_check {
+    bits := u32(math.log2(f32(FFT_SIZE)))
+
     for i in 0..<FFT_SIZE {
-        hann_table[i] = 1.0 - math.cos(2 * math.PI * f32(i) / (FFT_SIZE - 1))
-        bit_rev_table[i] = intrinsics.reverse_bits(u32(i)) >> (32 - FFT_BITS)
+        hann_table[i] = 0.5 * (1.0 - math.cos(2.0 * f32(math.PI) * f32(i) / f32(FFT_SIZE - 1)))
+        bit_rev_table[i] = intrinsics.reverse_bits(u32(i)) >> (32 - bits)
     }
 
     for i in 0..<FFT_SIZE/2 {
